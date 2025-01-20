@@ -130,7 +130,7 @@ export class BotApp {
 
   private maskBotToken(text: string, action: 'mask' | 'unmask') {
     if (action === 'mask') return text.replace(new RegExp(this.options.botToken, 'g'), '${{BOT_TOKEN}}');
-    return text.replace(new RegExp('${{BOT_TOKEN}}', 'g'), this.options.botToken);
+    return text.replaceAll('${{BOT_TOKEN}}', this.options.botToken);
   }
 
   private async handlePhoto(
@@ -159,7 +159,7 @@ export class BotApp {
         type: 'photo',
       }).init(),
     );
-    const message = await aiClient.chatWithImage('friend', incomingMessages, photo.photoUrl);
+    const message = await aiClient.chatWithImage('multiAgent', incomingMessages, photo.photoUrl);
     if (!message) {
       await ctx.reply(t.sorryICannotUnderstand);
       return;
@@ -257,7 +257,8 @@ export class BotApp {
         if (countMaxPreviousMessage <= 0) {
           break;
         }
-        previousMessage.push({ type: entity.type, content: entity.payload });
+				const content = entity.type === 'photo' ? this.maskBotToken(entity.payload, 'unmask') : entity.payload;
+        previousMessage.push({ type: entity.type, content });
         countMaxPreviousMessage--;
       }
     } else {
@@ -265,7 +266,7 @@ export class BotApp {
     }
     previousMessage.reverse();
     // Step 3: Chat with AI
-    const messages = await aiClient.chat('friend', chatMode, [incomingMessage], previousMessage);
+    const messages = await aiClient.chat('multiAgent', chatMode, [incomingMessage], previousMessage);
     await azureTableMessageClient.insert(
       await new MessageEntity({
         payload: messages.join(' '),

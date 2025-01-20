@@ -10,7 +10,7 @@
 		"watch": "tsc -w",
 		"clean": "rimraf dist",
 		"format": "prettier --write .",
-		"dev": "run-p watch start tunnel azurite",
+		"dev": "run-p watch start",
 		"prestart": "npm run clean && npm run build",
 		"start": "func start",
 		"azurite": "azurite --silent --location ./.azurite --debug ./.azurite/debug.log",
